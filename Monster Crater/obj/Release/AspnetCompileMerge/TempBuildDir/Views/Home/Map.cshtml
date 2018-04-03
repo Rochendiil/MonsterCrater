@@ -1,0 +1,145 @@
+﻿
+@using System.Drawing
+@using Microsoft.Ajax.Utilities
+@using Monster_Crater.Models
+@model     Monster_Crater.Models.World
+@{
+    ViewBag.Title = "Index";
+
+}
+<div class="row">
+
+
+    <input id="fight" type="submit" value="Start Fight" />
+    <input id="btnheal" class="button" type="submit" value="Heal Monster" />
+</div>
+<div class="row">
+    <input id='btnup' class="button" type="submit" value="&#8679;" style="margin-left: 18px;"/>
+</div>
+<div class="row">
+    <input id='btnleft' class="button" type="submit" value="&#8678;" />
+    <input id='btnright' class="button" type="submit" value="&#8680;" />
+
+</div>
+<div class="row">
+    <input id='btndown' class="button" type="submit" value="&#8681;"style="margin-left: 18px;"/>
+
+</div>
+<div id='map'>
+    <div id="start"></div>
+</div>
+<style>#map #start {
+   width: 0px;
+    height: 0px;
+    outline: 0px solid;
+    float: left;
+    Background: white;
+}
+#map div {
+
+    outline: 1px solid;
+    float: left;
+    Background: white;
+}
+#map .wall {
+        Background: Black;
+}
+</style>
+@section scripts{
+    <script>
+
+        $('document').ready(function() {
+            var JSONworld = @Html.Raw(Json.Encode(Session["World"]));
+            $('#map').css('height', (JSONworld.CurrentMap.CellSizeH * JSONworld.CurrentMap.CellCountH));
+            $('#map').css('width', (JSONworld.CurrentMap.CellSizeW * JSONworld.CurrentMap.CellCountW));
+            jQuery.each(JSONworld.CurrentMap.Cells,
+                function(i, cell) {
+                    if (cell.type == 0) {
+                        $("#map div:last").after('<div class="normal" id=' +
+                            'x' +
+                            cell.indexX +
+                            'y' +
+                            cell.indexY +
+                            ' style= "height: ' +
+                            JSONworld.CurrentMap.CellSizeH +
+                            'px; width:' +
+                            JSONworld.CurrentMap.CellSizeW +
+                            'px;"> </div>');
+                    }
+                    if (cell.type == 2) {
+                        $("#map div:last").after('<div class="wall" id=' +
+                            'x' +
+                            cell.indexX +
+                            'y' +
+                            cell.indexY +
+                            ' style= "height: ' +
+                            JSONworld.CurrentMap.CellSizeH +
+                            'px; width:' +
+                            JSONworld.CurrentMap.CellSizeW +
+                            'px;"> </div>');
+                    }
+                });
+            var DivId = 'x' + JSONworld.Player.PositionX + 'y' + JSONworld.Player.PositionY;
+            $('#' + DivId).css("background-color", "blue");
+            $('#btnup').click(function() {
+                move(0, 1, false);
+            });
+            $('#btnright').click(function() {
+                move(1, 0, true);
+            });
+            $('#btnleft').click(function() {
+                move(1, 0, false);
+            });
+            $('#btndown').click(function() {
+                move(0, 1, true);
+            });
+
+            function move(MoveintX, MoveintY, Add) {
+
+                var DivId = 'x' + JSONworld.Player.PositionX + 'y' + JSONworld.Player.PositionY;
+                $('#' + DivId).css("background-color", "White");
+                if (Add) {
+                    JSONworld.Player.PositionY = JSONworld.Player.PositionY + MoveintY;
+                    JSONworld.Player.PositionX = JSONworld.Player.PositionX + MoveintX;
+                    if ($('#' + 'x' + JSONworld.Player.PositionX + 'y' + JSONworld.Player.PositionY).attr('class') === 'wall') {
+                        JSONworld.Player.PositionY = JSONworld.Player.PositionY - MoveintY;
+                        JSONworld.Player.PositionX = JSONworld.Player.PositionX - MoveintX;
+                    }
+                }
+                if (Add == false) {
+                    JSONworld.Player.PositionY = JSONworld.Player.PositionY - MoveintY;
+                    JSONworld.Player.PositionX = JSONworld.Player.PositionX - MoveintX;
+                    if ($('#' + 'x' + JSONworld.Player.PositionX + 'y' + JSONworld.Player.PositionY).attr('class') === 'wall') {
+                        JSONworld.Player.PositionY = JSONworld.Player.PositionY + MoveintY;
+                        JSONworld.Player.PositionX = JSONworld.Player.PositionX + MoveintX;
+                    }
+                }
+                var DivId = 'x' + JSONworld.Player.PositionX + 'y' + JSONworld.Player.PositionY;
+                $('#' + DivId).css("background-color", "blue");
+            }
+
+            $('#fight').click(function() {
+                var decodeWorld = JSON.stringify(JSONworld);
+                $.ajax({
+                    url: '/Fight/StartFight',
+                    type: 'POST',
+                    data: { worldstring: decodeWorld },
+                    success: function(result) {
+
+                        window.location.href = "@Url.Action("Fight", "Fight")";
+
+                    }
+                });
+
+
+            });
+            $('#btnheal').click(function() {
+                jQuery.each(JSONworld.Player.Party,
+                    function(i, monster) {
+                        if(monster != null)monster.Health = monster.MaxHealth;
+                    });
+                alert('Your monsters got healed to its Max Health');
+            });
+        });
+    </script>
+}

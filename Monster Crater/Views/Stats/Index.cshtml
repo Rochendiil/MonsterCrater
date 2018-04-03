@@ -1,0 +1,181 @@
+﻿@using Monster_Crater.Models
+<style>
+    .row #stats {
+        border-style: solid;
+        border-width: 1px;
+    }
+</style>
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>MonsterStats</h2>
+<div class="row">
+    <div class="col-sm-2"><span> Soort</span></div>
+    <div class="col-sm-1"><span> Attack</span></div>
+    <div class="col-sm-1"><span> SpecialAttack</span></div>
+    <div class="col-sm-1"><span> Defence</span></div>
+    <div class="col-sm-1"><span> SpecialDefence</span></div>
+    <div class="col-sm-1"><span> MaxHealth</span></div>
+
+</div>
+<div class="row">
+    <div class="col-sm-2"><select id="soort"></select></div>
+    <div class="col-sm-1"><select id="attack"></select></div>
+    <div class="col-sm-1"><select id="specialattack"></select></div>
+    <div class="col-sm-1"><select id="defence"></select></div>
+    <div class="col-sm-1"><select id="specialdefence"></select></div>
+    <div class="col-sm-1"><select id="maxhealth"></select></div>
+</div>
+
+<div id="results">
+    <div id="0" class="row">
+        <button id="reset">reset filter</button>
+        <div class="col-sm-1">
+            <span>Number of Monsters</span>
+        </div>
+    </div>
+    <div id="stats" class="row">
+
+    </div>
+</div>
+@section scripts{
+    <script>
+        $('document').ready(function() {
+            var soortfilter = "";
+            var attackfilter = "";
+            var specialattackfilter = "";
+            var defencefilter = "";
+            var specialdefencefilter = "";
+            var maxhealthfilter = "";
+            var basicmonsterfilter = "";
+            var result = @Html.Raw(Json.Encode(Session["filterresult"]));
+
+            var filters = @Html.Raw(Json.Encode(Session["newfilters"]));
+
+            function fillfilter(name, i, active) {
+                $('#' + name).empty();
+                jQuery.each(filters[i],
+                    function(k, value) {
+
+                        $('#' + name).append('<option value=' +
+                            value +
+                            '>' +
+                            value +
+                            '</option>');
+
+
+
+                    });
+            }
+
+            fillfilter('soort', 0, soortfilter);
+            fillfilter('attack', 1, attackfilter);
+            fillfilter('specialattack', 2,specialattackfilter);
+            fillfilter('defence', 3,defencefilter);
+            fillfilter('specialdefence', 4,specialdefencefilter);
+            fillfilter('maxhealth', 5,maxhealthfilter);
+            $('#reset').on('click',
+                function() {
+                    soortfilter = "";
+                    attackfilter = "";
+                    specialattackfilter = "";
+                    defencefilter = "";
+                    specialdefencefilter = "";
+                    maxhealthfilter = "";
+                    basicmonsterfilter = "";
+                    setstats();
+                });
+            $('#soort').on('change',
+                function() {
+                    soortfilter = this.value;
+                    setstats();
+                }
+            );
+            $('#attack').click(
+                function() {
+                    attackfilter = this.value;
+                    setstats();
+                });
+            $('#specialattack').on('change',
+                   function() {
+                       specialattackfilter = this.value;
+                       setstats();
+                   });
+            $('#defence').on('change',
+                function() {
+                    defencefilter = this.value;
+                    setstats();
+                });
+            $('#specialdefence').on('change',
+                function() {
+                    specialdefencefilter = this.value;
+                    setstats();
+    }
+);
+            $('#maxhealth').on('change',
+    function() {
+        maxhealthfilter = this.value;
+        setstats();
+    }
+);      
+            function setstats() {
+
+                var filter = soortfilter +
+                    ',' +
+                    attackfilter +
+                    ',' +
+                    specialattackfilter +
+                    ',' +
+                    defencefilter +
+                    ',' +
+                    specialdefencefilter +
+                    ',' +
+                    maxhealthfilter +
+                    ',' +
+                    basicmonsterfilter;
+                $.ajax({
+                    url: 'getFilter',
+                    type: 'POST',
+                    data: { filterstring: filter },
+                    success: function(result) {
+                        var varresult = JSON.parse(result);
+                        filters = varresult;
+
+                        fillfilter('soort', 0, soortfilter);
+                        fillfilter('attack', 1, attackfilter);
+                        fillfilter('specialattack', 2,specialattackfilter);
+                        fillfilter('defence', 3,defencefilter);
+                        fillfilter('specialdefence', 4,specialdefencefilter);
+                        fillfilter('maxhealth', 5,maxhealthfilter);
+                    }
+                });
+                $.ajax({
+                    url: 'applyFilter',
+                    type: 'POST',
+                    data: { filterstring: filter },
+                    success: function(result) {
+                        var varresult = JSON.parse(result);
+                        $('#stats').empty();
+                        $('#stats').append('<div class="col-sm-2"><span>' +
+                            varresult[0] +
+                            '</span></div><div class="col-sm-1"><span>' +
+                            varresult[1] +
+                            '</span></div><div class="col-sm-1"><span>' +
+                            varresult[2] +
+                            '</span></div><div class="col-sm-1"><span>' +
+                            varresult[3] +
+                            '</span></div> <div class="col-sm-1"><span>' +
+                            varresult[4] +
+                            '</span></div> <div class="col-sm-1"><span>' +
+                            varresult[5] +
+                            '</span></div></div>');
+                    }
+                });
+
+            }
+
+        });
+
+    </script>
+}

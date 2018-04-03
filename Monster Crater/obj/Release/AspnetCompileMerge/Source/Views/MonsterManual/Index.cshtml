@@ -1,0 +1,59 @@
+﻿@using Monster_Crater.Models
+<style>
+    .row{
+        border-style: solid;
+        border-width: 1px;
+    }
+     
+</style>
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>MonsterManual</h2>
+
+<div id="Manual">
+    <div id="0" class="row">
+        <div class="col-sm-2"><span>Naam</span></div>
+        <div class="col-sm-1"><span> Seen</span></div>
+        <div class="col-sm-1"><span> Catched</span></div>
+        <div class="col-sm-1"><span> Max Xp</span></div>
+        <div class="col-sm-1"><span> EvolutieLevel</span></div>
+        <div class="col-sm-1"><span> Soort</span></div>
+        <div class="col-sm-1"><span> Attack</span></div>
+        <div class="col-sm-1"><span> SpecialAttack</span></div>
+        <div class="col-sm-1"><span> Defence</span></div>
+        <div class="col-sm-2"><span> SpecialDefence</span></div>
+    </div>
+</div>
+@section scripts{
+    <script>
+        $('document').ready(function() {
+
+            @{
+                 World world = new World();
+                 world = (World)Session["World"];
+                Session["MonsterManual"] = world.Player.MonsterManual;
+
+            }
+            var i = 0;
+            var Soort={0: 'Rock',1 : 'Paper',2: 'Scissor'}
+            var MM = @Html.Raw(Json.Encode(Session["MonsterManual"]));
+            var x = 0;
+            jQuery.each(MM.Monsterlist,
+                function(i, monster) {
+
+                    
+                    $('#Manual').append('<div id=' + (i + 1) + ' class="row"><div class="col-sm-2"><span>'+ monster.Naam +'</span></div><div class="col-sm-1"><span>'+ monster.Seen+'</span></div><div class="col-sm-1"><span>'+ monster.Catched + '</span></div><div class="col-sm-1"><span>'+monster.MaxXp+'</span></div> <div class="col-sm-1"><span>'+ monster.EvolutieLevel+ '</span></div> <div class="col-sm-1"><span>'+Soort[monster.Soort]+'</span></div> <div class="col-sm-1"><span> '+ monster.Attack +'</span></div> <div class="col-sm-1"><span>'+ monster.SpecialAttack +'</span></div> <div class="col-sm-1"><span>' +monster.Defence+ '</span></div> <div class="col-sm-1"><span>'+monster.SpecialDefence + '</span></div></div>');
+                    if (monster.Catched) {
+                        $('#' + (i + 1)).css("background-color", "green");
+                    }
+                    else if (monster.Seen) {
+                        $('#' + (i + 1)).css("background-color", "Orange");
+                    }
+                });  
+
+        });
+
+    </script>
+} 

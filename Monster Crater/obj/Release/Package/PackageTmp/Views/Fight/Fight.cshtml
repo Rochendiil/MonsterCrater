@@ -1,0 +1,172 @@
+﻿@using System.Drawing
+@using Microsoft.Ajax.Utilities
+@using Monster_Crater.Models
+@model     Monster_Crater.Models.World
+@{
+    ViewBag.Title = "Fight";
+
+}
+
+<div id='fightleft' style="width: 566px; height: 300px; float: left; padding: 1px;">
+
+</div>
+<div id='fightright' style="width: 566px; height: 300px; float: right; padding: 1px;">
+
+</div>
+<div id='Moves'>
+    <input id='Move1' class="button" type="submit" value="Not learned" />
+    <input id='Move2' class="button" type="submit" value="Not learned" />
+    <input id='Move3' class="button" type="submit" value="Not learned" />
+    <input id='Move4' class="button" type="submit" value="Not learned" />
+</div>
+<input id='Switch' class="button" type="submit" value="Switch" />
+<input id='Run' class="button" type="submit" value="Run" />
+@section scripts{
+
+    <script>
+
+    $('document').ready(function() {
+        var JSONworld = @Html.Raw(Json.Encode(Session["World"]));
+        var monstercounter = 0;
+        var activemonster = 0;
+        jQuery.each(JSONworld.Player.Party,
+            function(i, monster) {
+
+                if (monster != null) {
+
+                    if (monster.Active === true) {
+                        activemonster = monstercounter;
+                    }
+                }
+                monstercounter++;
+            });
+        $('#fightleft').append('<div> Name: ' + JSONworld.Player.Party[activemonster].Naam + '</div>');
+        $('#fightleft').append('<div> <span> Health: ' +
+            JSONworld.Player.Party[activemonster].Health +
+            '</span></div>');
+        $('#fightright').append('<div> Name: ' + JSONworld.WildMonster.Naam + '</div>');
+        $('#fightright').append('<div id= "righthealth"><span> Health: ' +
+            JSONworld.WildMonster.Health +
+            ' </span></div>');
+        if (JSONworld.Player.Party[activemonster]
+            .Moves[0] !=
+            null) $('#Move1').attr('value', JSONworld.Player.Party[activemonster].Moves[0].Name);
+        if (JSONworld.Player.Party[activemonster]
+            .Moves[1] !=
+            null) $('#Move2').attr('value', JSONworld.Player.Party[activemonster].Moves[1].Name);
+        if (JSONworld.Player.Party[activemonster]
+            .Moves[2] !=
+            null) $('#Move3').attr('value', JSONworld.Player.Party[activemonster].Moves[2].Name);
+        if (JSONworld.Player.Party[activemonster]
+            .Moves[3] !=
+            null) $('#Move4').attr('value', JSONworld.Player.Party[activemonster].Moves[3].Name);
+        $('#Move1').click(function() {
+            var buttonValue = $('#Move1').val();
+            if (buttonValue != 'Not learned') {
+                Attack(0);
+            }
+
+
+        });
+        $('#Move2').click(function() {
+            var buttonValue = $('#Move2').val();
+            if (buttonValue != 'Not learned') {
+                Attack(1);
+            }
+
+        });
+        $('#Move3').click(function() {
+            var buttonValue = $('#Move3').val();
+            if (buttonValue != 'Not learned') {
+                Attack(2);
+            }
+
+        });
+
+        $('#Move4').click(function() {
+            var buttonValue = $('#Move4').val();
+            if (buttonValue != 'Not learned') {
+                Attack(3);
+            }
+
+        });
+
+        $('#Run').click(function() {
+            alert('You ran from the fight');
+            Endfight();
+        });
+
+        function Attack(Moveint) {
+            JSONworld.WildMonster.Health = JSONworld.WildMonster.Health -
+                JSONworld.Player.Party[activemonster].Moves[Moveint].Attack;
+            $('#fightright span').text("Health: " + JSONworld.WildMonster.Health);
+            alert('you dealt ' + JSONworld.Player.Party[activemonster].Moves[Moveint].Attack + ' damage');
+
+            if (Math.floor(JSONworld.WildMonster.Health) >= 0) {
+                var EnemyMove = Math.floor(Math.random() * JSONworld.WildMonster.Moves.length);
+
+                while (JSONworld.WildMonster.Moves[EnemyMove] == null) {
+
+                    EnemyMove = Math.floor(Math.random() * JSONworld.WildMonster.Moves.length);
+                }
+                JSONworld.Player.Party[activemonster]
+                    .Health = JSONworld.Player.Party[activemonster].Health -
+                    JSONworld.WildMonster.Moves[EnemyMove].Attack;
+                alert('you received ' + JSONworld.WildMonster.Moves[EnemyMove].Attack + ' damage');
+                $('#fightleft span').text("Health: " + JSONworld.Player.Party[activemonster].Health);
+            }
+            if (Math.floor(JSONworld.WildMonster.Health) <= 0) {
+                alert('you killed the enemy Monster.. Congrats!');
+                var xpgain = Math.floor(Math.random() * JSONworld.WildMonster.Level);
+                JSONworld.Player.Party[activemonster].Xp = JSONworld.Player.Party[activemonster].Xp + xpgain;
+                while (JSONworld.Player.Party[activemonster].MaxXp <= JSONworld.Player.Party[activemonster].Xp) {
+                    JSONworld.Player.Party[activemonster].Level = JSONworld.Player.Party[activemonster].Level + 1;
+                    JSONworld.Player.Party[activemonster]
+                        .Xp = JSONworld.Player.Party[activemonster].Xp - JSONworld.Player.Party[activemonster].MaxXp;
+
+                }
+                Endfight();
+
+            }
+            if (JSONworld.Player.Party[activemonster].Health <= 0) {
+                alert('your monster got defeated..');
+                JSONworld.Player.Party[activemonster].Health = 0;
+
+                Endfight();
+
+            }
+
+
+        }
+        $('#Switch').click(function() {
+            var decodeWorld = JSON.stringify(JSONworld);
+            $.ajax({
+                url: 'StartSwitch',
+                type: 'POST',
+                data: { worldstring: decodeWorld },
+                success: function(result) {
+
+                    window.location.href = "@Url.Action("Switch", "Fight")";
+
+                }
+            });
+
+        });
+        function Endfight() {
+            var decodeWorld = JSON.stringify(JSONworld);
+            $.ajax({
+                url: 'EndFight',
+                type: 'POST',
+                data: { worldstring: decodeWorld },
+                success: function(result) {
+
+                    window.location.href = "@Url.Action("Map", "Home")";
+
+                    }
+                });
+            }
+
+
+        })
+    </script>
+}

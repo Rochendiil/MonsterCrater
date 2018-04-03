@@ -1,0 +1,99 @@
+﻿
+@{
+    ViewBag.Title = "Switch";
+}
+
+<h2>Switch</h2>
+
+
+<div id="Party">
+    <div id="tags" class="row">
+        <div class="col-sm-1"><span>Naam</span></div>
+        <div class="col-sm-1"><span>Health</span></div>
+        <div class="col-sm-1"><span>Max Health</span></div>
+        <div class="col-sm-1"><span> Xp</span></div>
+        <div class="col-sm-1"><span> Max Xp</span></div>
+        <div class="col-sm-1"><span> Level</span></div>
+        <div class="col-sm-1"><span> Soort</span></div>
+        <div class="col-sm-1"><span> Attack</span></div>
+        <div class="col-sm-1"><span> Defence</span></div>
+    </div>
+
+</div>
+@section scripts{
+
+
+    <script>
+        $('document').ready(function() {
+            JSONworld = @Html.Raw(Json.Encode(Session["World"]));
+            var Soort = { 0: 'Rock', 1: 'Paper', 2: 'Scissor' }
+            jQuery.each(JSONworld.Player.Party,
+                function(i, monster) {
+                    if (monster != null && monster.Active != true) {
+                        $('#Party').append('<div id=' +
+                            (i) +
+                            ' class="row">' +
+                            '<div class="col-sm-1"><span>' +
+                            monster.Naam +
+                            '</span></div><div class="col-sm-1"><span>' +
+                            monster.Health +
+                            '</span></div><div class="col-sm-1"><span>' +
+                            monster.MaxHealth +
+                            '</span></div><div class="col-sm-1"><span>' +
+                            monster.Xp +
+                            '</span></div><div class="col-sm-1"><span>' +
+                            monster.MaxXp +
+                            '</span></div> <div class="col-sm-1"><span>' +
+                            monster.Level +
+                            '</span></div> <div class="col-sm-1"><span>' +
+                            Soort[monster.Soort] +
+                            '</span></div> <div class="col-sm-1"><span> ' +
+                            monster.Attack +
+                            '</span></div> <div class="col-sm-1"><span>' +
+                            monster.Defence +
+                            '</span></div><div class="col-sm-1"><input class="btn btn-primary" id=' +
+                            i +
+                            ' type="submit" value="Switch"></div></div>');
+
+                    }
+
+                });
+            $('#0').click(function() {
+                endswitch(0);
+            });
+            $('#1').click(function() {
+                endswitch(1);
+            });
+            $('#2').click(function() {
+                endswitch(3);
+            });
+            $('#3').click(function() {
+                endswitch(4);
+            });
+
+            function endswitch(nmmr) {
+                jQuery.each(JSONworld.Player.Party,
+                    function(i, monster) {
+                        if (monster != null) {
+
+
+                            monster.active = false;
+                        }
+                    });
+                JSONworld.Player.Party[nmmr].active = true;
+                var decodeWorld = JSON.stringify(JSONworld);
+                $.ajax({
+                    url: 'EndSwitch',
+                    type: 'POST',
+                    data: { worldstring: decodeWorld },
+                    success: function(result) {
+
+                        window.location.href = "@Url.Action("Fight", "Fight")";
+
+                    }
+                });
+            }
+
+        });
+    </script>
+}

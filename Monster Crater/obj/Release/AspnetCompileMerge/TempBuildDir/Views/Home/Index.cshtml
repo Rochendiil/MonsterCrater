@@ -1,0 +1,24 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+@using (Html.BeginForm("Login", "Home"))
+{
+
+    <div class="form-horizontal">
+        <form>
+            Username: <input type="text" name="username"><br>
+            Password: <input type="text" name="password"><br>
+            @if (Session["message"] != null)
+            {
+                <span> @Session["message"].ToString()</span><br />
+                Session["message"] = null;
+
+            }
+            <input type="submit" value="Submit">
+        </form>
+
+
+    </div>
+}
